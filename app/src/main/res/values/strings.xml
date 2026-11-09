@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">Extendroid</string>
-    <string name="url_shizuku">https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api</string>
-    <string name="url_homepage_web">https://extendroid.pages.dev</string>
-    <string name="url_get_boosters">https://extendroid.pages.dev/boosters</string>
-    <string name="package_shizuku">moe.shizuku.privileged.api</string>
+    <string name="url_shizuku" translatable="false">https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api</string>
+    <string name="url_homepage_web" translatable="false">https://extendroid.pages.dev</string>
+    <string name="url_get_boosters" translatable="false">https://extendroid.pages.dev/boosters</string>
+    <string name="package_shizuku" translatable="false">moe.shizuku.privileged.api</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="setup_shizuku">Setup Shizuku</string>
@@ -54,4 +54,85 @@
     <string name="task_name">Task Name</string>
     <string name="task_name_exists">Task name already exists!</string>
     <string name="record">Record</string>
+
+    <!-- Section headers on the home screen -->
+    <string name="header_setup">Setup</string>
+    <string name="header_options">Options</string>
+
+    <!-- Generic -->
+    <string name="done">Done</string>
+    <string name="understood">Understood</string>
+    <string name="loading">Loading…</string>
+    <string name="please_wait">Please wait…</string>
+    <string name="disclaimer">Disclaimer</string>
+    <string name="select_apps">Select Apps</string>
+    <string name="seconds_unit">s</string>
+    <string name="workspace">Workspace</string>
+    <string name="workspace_name_hint">Workspace Name</string>
+    <string name="default_workspace_name">Extendroid Workspace %1$d</string>
+
+    <!-- Home screen actions -->
+    <string name="stopping_services">Stopping services, press back to restart the app.</string>
+    <string name="please_wait_starting_soon">Please wait, starting soon!</string>
+    <string name="insufficient_setup">Failure: Insufficient Setup!</string>
+    <string name="miui_permissions">Please allow the required MIUI permissions!</string>
+    <string name="echo_boosters">Echo Boosters : %1$s</string>
+
+    <!-- Language -->
+    <string name="language">Language</string>
+    <string name="language_system">Follow system</string>
+    <string name="language_english">English</string>
+    <string name="language_chinese">简体中文</string>
+    <string name="language_changed">Language changed. Restarting…</string>
+
+    <!-- Help -->
+    <string name="help">Help</string>
+    <string name="help_title">How to use Extendroid</string>
+    <string name="help_text">Quick start\n1. Install Shizuku (shizuku.rikka.app) and start it over ADB or root.\n2. Open Extendroid, tap “Setup Shizuku” and grant the permission request.\n3. Allow “Display over other apps”, otherwise windows cannot be drawn.\n4. Open the control menu from the notification or from the floating ball.\n5. Pick an app in ☆ (recent) or ＋ (all apps) to load its live preview.\n6. Tap the preview to open the app in a popup window, long press it to go fullscreen.\n7. Drag the top handle to move a window, drag the bottom corners to resize it.\n8. Tap the top handle for minimize / maximize / back / close.\n\nTips\n• Minimised apps keep running and their live preview stays up to date.\n• The ⋮ menu can turn the screen off while every app keeps running.\n• Change the language any time in Options → Language.\n• Echo (remote access) needs a Firebase configuration and is hidden when the build has none.</string>
+
+    <!-- Logs -->
+    <string name="logs">Logs</string>
+    <string name="log_time">TIME</string>
+    <string name="log_level">LEVEL</string>
+    <string name="clear_older_logs">Clear Older Logs</string>
+    <string name="show_last">Show last</string>
+    <string name="days_in">days in</string>
+    <string name="ascending">Asc</string>
+    <string name="descending">Desc</string>
+    <string name="order">order</string>
+    <string name="invalid_number">Invalid number</string>
+    <string name="logs_cleared">Logs older than %1$d days were cleared.</string>
+
+    <!-- Overflow menu -->
+    <string name="action_popup_all">Popup all</string>
+    <string name="action_fullscreen_all">Fullscreen all</string>
+    <string name="action_close_all">Close all</string>
+    <string name="action_disable_screen">Disable Screen</string>
+    <string name="action_configure">Configure</string>
+
+    <!-- Notification -->
+    <string name="notification_menu_title">Click to open Extendroid menu</string>
+    <string name="notification_echo_connections">Echo has %1$d active connections.</string>
+    <string name="notification_channel_service">Service</string>
+    <string name="notification_channel_silent">Service_Silent</string>
+
+    <!-- Echo screen -->
+    <string name="echo_account">Account</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="sign_up">Sign up</string>
+    <string name="log_in">Log in</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="sign_out">Sign out</string>
+    <string name="boosters">Boosters</string>
+    <string name="estimated_usage">Estimated Usage: </string>
+    <string name="get_more_boosters">Get More Boosters</string>
+    <string name="remote_access">Remote Access</string>
+    <string name="app_blacklist">App Blacklist</string>
+    <string name="remote_unlock">Remote Unlock</string>
+    <string name="start_training">Start Training</string>
+    <string name="remove_training_data">Remove Training Data</string>
+    <string name="unlock_data_local">Your unlock data is stored locally and never sent anywhere.</string>
+    <string name="this_device">this device</string>
+    <string name="echo_unavailable">Echo is not configured in this build.</string>
 </resources>

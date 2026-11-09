@@ -21,6 +21,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 import dev.legendsayantan.extendroid.Utils.Companion.asCommonEmail
 import dev.legendsayantan.extendroid.Utils.Companion.launchOnDefaultBrowser
 import dev.legendsayantan.extendroid.Utils.Companion.showInfoDialog
+import dev.legendsayantan.extendroid.echo.EchoState
 import dev.legendsayantan.extendroid.echo.RemoteUnlocker
 import dev.legendsayantan.extendroid.lib.PackageManagerHelper
 import dev.legendsayantan.extendroid.services.ExtendService
@@ -71,8 +72,17 @@ class EchoActivity : AppCompatActivity() {
         }, 1000)
     }
 
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (!EchoState.available) {
+            Toast.makeText(this, R.string.echo_unavailable, Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
         enableEdgeToEdge()
         setContentView(R.layout.activity_echo)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -81,7 +91,7 @@ class EchoActivity : AppCompatActivity() {
             insets
         }
         subheader.text = getString(
-            R.string.visit_to_access,prefs.deviceName.ifEmpty { "Your device" },
+            R.string.visit_to_access,prefs.deviceName.ifEmpty { getString(R.string.this_device) },
             getString(R.string.url_homepage_web))
         preventShowing = true
         updateAccount()

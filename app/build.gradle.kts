@@ -1,10 +1,20 @@
-import org.gradle.internal.declarativedsl.parsing.main
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.gms.googleservices)
 }
+
+// Echo (remote access) needs Firebase. The plugin is only applied when a real
+// google-services.json is present, so the project builds out of the box without one.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
+// Optional release signing, used by the GitHub Actions workflow and by local builds
+// that export EXTENDROID_KEYSTORE.
+val ciKeystore: File? = System.getenv("EXTENDROID_KEYSTORE")
+    ?.takeIf { it.isNotBlank() }
+    ?.let { file(it) }
+    ?.takeIf { it.exists() }
 
 android {
     namespace = "dev.legendsayantan.extendroid"
@@ -22,14 +32,29 @@ android {
         applicationId = "dev.legendsayantan.extendroid"
         minSdk = 29
         targetSdk = 33
-        versionCode = 6
-        versionName = "1.0.5"
+        versionCode = 7
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("ci") {
+            if (ciKeystore != null) {
+                storeFile = ciKeystore
+                storePassword = System.getenv("EXTENDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("EXTENDROID_KEY_ALIAS") ?: "extendroid"
+                keyPassword = System.getenv("EXTENDROID_KEY_PASSWORD")
+                    ?: System.getenv("EXTENDROID_KEYSTORE_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (ciKeystore != null) {
+                signingConfig = signingConfigs.getByName("ci")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

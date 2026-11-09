@@ -12,7 +12,7 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="100dp" android:orientation="vertical">
         <LinearLayout android:layout_width="match_parent" android:layout_height="50dp"
                       android:paddingHorizontal="20dp" android:gravity="center_vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Logs"
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/logs"
                       android:textSize="24sp"
                       android:layout_marginVertical="10dp"
                       android:layout_weight="1"/>
@@ -23,29 +23,29 @@
                     android:layout_height="match_parent"
                     app:backgroundTint="?attr/colorOnSecondary"
                     android:textColor="?attr/colorPrimary"
-                    android:layout_marginVertical="2dp" android:text="Clear Older Logs"/>
+                    android:layout_marginVertical="2dp" android:text="@string/clear_older_logs"/>
 
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="50dp" android:paddingHorizontal="20dp"
                       android:orientation="horizontal" android:gravity="center">
             <TextView android:textSize="16sp" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                      android:text="Show last "/>
+                      android:text="@string/show_last"/>
             <EditText android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/days"
                       android:inputType="number" android:ems="2" android:text="1" android:hint="1"/>
             <TextView android:textSize="16sp" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                      android:text="days in"/>
+                      android:text="@string/days_in"/>
 
             <RadioGroup android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:orientation="horizontal">
                 <RadioButton android:id="@+id/ascending" android:layout_width="wrap_content"
-                             android:layout_height="wrap_content" android:text="Asc"/>
+                             android:layout_height="wrap_content" android:text="@string/ascending"/>
                 <Space android:layout_width="5dp" android:layout_height="10dp"/>
                 <RadioButton android:checked="true" android:id="@+id/descending" android:layout_width="wrap_content"
-                             android:layout_height="wrap_content" android:text="Desc"/>
+                             android:layout_height="wrap_content" android:text="@string/descending"/>
             </RadioGroup>
             <Space android:layout_width="5dp" android:layout_height="10dp"/>
             <TextView android:textSize="16sp" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                      android:text="order"/>
+                      android:text="@string/order"/>
 
         </LinearLayout>
 

@@ -36,7 +36,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="s"
+            android:text="@string/seconds_unit"
             android:textColor="?attr/colorOnSecondary"
             android:textSize="20sp" />
     </LinearLayout>

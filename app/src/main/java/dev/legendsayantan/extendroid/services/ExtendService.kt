@@ -20,6 +20,7 @@ import android.provider.Settings
 import android.view.Display
 import android.view.MotionEvent
 import android.view.WindowManager
+import dev.legendsayantan.extendroid.LocaleHelper
 import dev.legendsayantan.extendroid.MainActivity
 import dev.legendsayantan.extendroid.Prefs
 import dev.legendsayantan.extendroid.R
@@ -41,7 +42,23 @@ import rikka.shizuku.Shizuku
 class ExtendService : Service() {
     val prefs by lazy { Prefs(applicationContext) }
     val ball by lazy { FloatingBall(this) }
-    val menu by lazy { OverlayMenu(this) }
+
+    private var menuInstance: OverlayMenu? = null
+    private var menuLanguage: String? = null
+
+    /**
+     * The overlay menu is created with the language that is currently stored, so a
+     * language change simply drops the old instance and builds a new one.
+     */
+    val menu: OverlayMenu
+        get() {
+            val language = LocaleHelper.storedTag(applicationContext)
+            if (menuInstance == null || menuLanguage != language) {
+                menuInstance = OverlayMenu(LocaleHelper.wrap(this))
+                menuLanguage = language
+            }
+            return menuInstance!!
+        }
     val popupManager by lazy { PopupManager(this) }
     val prefsChangedListener = { ctx: Context ->
         setupPrefsRelated()
@@ -194,7 +211,19 @@ class ExtendService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_RELOAD_LOCALE) {
+            reloadLanguage()
+        }
         return START_STICKY
+    }
+
+    /** Rebuilds the overlay UI after the in-app language changed. */
+    fun reloadLanguage() {
+        LocaleHelper.applyTo(applicationContext)
+        menuInstance?.hide()
+        menuInstance = null
+        menuLanguage = null
+        if (svc != null) setupUI()
     }
 
     private fun bindPrivilegedService() {
@@ -301,7 +330,7 @@ class ExtendService : Service() {
         prefs.unregisterConfigChangeListener(prefsChangedListener)
         svc = null
         ball.hide()
-        menu.hide()
+        menuInstance?.hide()
         setupEchoCommand = { _, _, _ -> }
         super.onDestroy()
     }
@@ -313,6 +342,8 @@ class ExtendService : Service() {
         private const val SERVICE_CHANNEL = "Service"
         private const val SERVICE_CHANNEL_LOW_PRIORITY = "Service_Silent"
         private const val ACTION_MENU_OPEN = "dev.legendsayantan.extendroid.action.MENU_OPEN"
+        const val ACTION_RELOAD_LOCALE =
+            "dev.legendsayantan.extendroid.action.RELOAD_LOCALE"
         const val ACTION_GET_MEDIA_PROJECTION =
             "dev.legendsayantan.extendroid.action.MEDIA_PROJECTION"
 
@@ -330,25 +361,30 @@ class ExtendService : Service() {
             )
 
             val notiMan = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            val strings = LocaleHelper.wrap(this)
             notiMan.createNotificationChannel(
                 NotificationChannel(
                     SERVICE_CHANNEL,
-                    SERVICE_CHANNEL,
+                    strings.getString(R.string.notification_channel_service),
                     NotificationManager.IMPORTANCE_NONE
                 )
             )
             notiMan.createNotificationChannel(
                 NotificationChannel(
                     SERVICE_CHANNEL_LOW_PRIORITY,
-                    SERVICE_CHANNEL_LOW_PRIORITY,
+                    strings.getString(R.string.notification_channel_silent),
                     NotificationManager.IMPORTANCE_LOW
                 ).apply {
                     setSound(null,null)
                 }
             )
             val notification = Notification.Builder(this, if (echoRemoteCount > 0) SERVICE_CHANNEL else SERVICE_CHANNEL_LOW_PRIORITY)
-                .setContentTitle("Click to open Extendroid menu")
-                .let { if (echoRemoteCount > 0) it.setContentText("Echo has $echoRemoteCount active connections.") else it }
+                .setContentTitle(strings.getString(R.string.notification_menu_title))
+                .let {
+                    if (echoRemoteCount > 0) it.setContentText(
+                        strings.getString(R.string.notification_echo_connections, echoRemoteCount)
+                    ) else it
+                }
                 .setSmallIcon(R.drawable.logo)
                 .setContentIntent(pendingIntent)
                 .build()

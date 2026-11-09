@@ -10,7 +10,7 @@
         android:id="@+id/workspaceTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Workspace"
+        android:text="@string/workspace"
         android:textColor="@color/theme4"
         android:textSize="24sp"
         android:textStyle="bold"

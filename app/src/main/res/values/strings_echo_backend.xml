@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Default Echo backend endpoints.
+
+    The upstream project keeps these values in a git-ignored `secrets.xml`. This fork ships
+    harmless placeholders so that the project compiles out of the box; Echo simply stays
+    unavailable. To use Echo, delete this file and provide your own
+    `app/src/main/res/values/secrets.xml` plus `app/google-services.json`.
+-->
+<resources>
+    <string name="url_backend_prod" translatable="false">https://echo.invalid</string>
+    <string name="url_backend_dev" translatable="false">https://echo.invalid</string>
+    <string name="mappingJsonUrl" translatable="false">https://echo.invalid/mappings.json</string>
+    <string name="disclaimerUrl" translatable="false">https://extendroid.pages.dev/tos</string>
+</resources>

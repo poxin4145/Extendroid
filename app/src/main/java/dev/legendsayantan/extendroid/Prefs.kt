@@ -75,6 +75,17 @@ class Prefs(val context: Context) {
             configChanged()
         }
 
+    /**
+     * Language of the app: "system" (default), "en" or "zh-CN".
+     * See [LocaleHelper] for the list of supported values.
+     */
+    var language: String
+        get() = prefs.getString("language", LocaleHelper.SYSTEM) ?: LocaleHelper.SYSTEM
+        set(value) {
+            prefs.edit { putString("language", value) }
+            configChanged()
+        }
+
     var floatingBall: Boolean
         get() = prefs.getBoolean("floatingBall", false)
         set(value) {

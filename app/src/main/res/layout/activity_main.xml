@@ -131,7 +131,7 @@
             android:layout_height="wrap_content"
             android:paddingHorizontal="20dp"
             android:paddingVertical="8dp"
-            android:text="Setup"
+            android:text="@string/header_setup"
             android:textSize="20sp" />
     </com.google.android.material.card.MaterialCardView>
 
@@ -164,6 +164,38 @@
                 android:text="@string/floating_ball"
                 android:textColor="?attr/colorOnSecondary"
                 android:textSize="20sp" />
+
+            <LinearLayout
+                android:id="@+id/languageRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/language"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:id="@+id/languageValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
+                    android:text="@string/language_system"
+                    android:textColor="?attr/colorOnSecondary"
+                    android:textSize="18sp" />
+
+                <ImageView
+                    android:id="@+id/languageImage"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/rounded_arrow_circle_right_24"
+                    app:tint="?attr/colorOnSecondary" />
+            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/tasksRow"
@@ -211,6 +243,29 @@
                     app:tint="?attr/colorOnSecondary" />
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/helpRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/help"
+                    android:textSize="20sp" />
+
+                <ImageView
+                    android:id="@+id/helpImage"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/rounded_info_24"
+                    app:tint="?attr/colorOnSecondary" />
+            </LinearLayout>
+
         </LinearLayout>
 
         <LinearLayout
@@ -251,7 +306,7 @@
             android:layout_height="wrap_content"
             android:paddingHorizontal="20dp"
             android:paddingVertical="8dp"
-            android:text="Options"
+            android:text="@string/header_options"
             android:textSize="20sp" />
     </com.google.android.material.card.MaterialCardView>
 

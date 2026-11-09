@@ -1,5 +1,6 @@
 package dev.legendsayantan.extendroid
 
+import android.content.Context
 import android.os.Bundle
 import android.widget.EditText
 import android.widget.RadioButton
@@ -21,6 +22,10 @@ class LogsActivity : AppCompatActivity() {
     val descending by lazy { findViewById<RadioButton>(R.id.descending) }
 
     val clearLogsBtn by lazy { findViewById<MaterialButton>(R.id.clearLogs) }
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -34,7 +39,7 @@ class LogsActivity : AppCompatActivity() {
         var lastValidDays = 1
         daysLimit.doOnTextChanged{ text,_,_,_ ->
             if(text.isNullOrEmpty() || text.toString().toIntOrNull() == null || text.toString().toInt() < 0){
-                daysLimit.error = "Invalid number"
+                daysLimit.error = getString(R.string.invalid_number)
             }else{
                 daysLimit.error = null
                 lastValidDays = text.toString().toInt()
@@ -51,7 +56,7 @@ class LogsActivity : AppCompatActivity() {
             Thread{
                 logging.clearLogsOlderThan(lastValidDays)
                 runOnUiThread {
-                    Toast.makeText(applicationContext,"Logs older than $lastValidDays days were cleared.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(applicationContext, getString(R.string.logs_cleared, lastValidDays), Toast.LENGTH_LONG).show()
                     updateLogView()
                 }
             }.start()
@@ -61,7 +66,7 @@ class LogsActivity : AppCompatActivity() {
     fun updateLogView() {
         val recycler = findViewById<RecyclerView>(R.id.logsView);
         recycler.adapter = null
-        Toast.makeText(applicationContext,"Loading...", Toast.LENGTH_SHORT).show()
+        Toast.makeText(applicationContext, getString(R.string.loading), Toast.LENGTH_SHORT).show()
         Thread {
             //fetch logs
             val logs = Logging(applicationContext).getLogsOf(daysLimit.text.toString().toInt(), descending.isChecked)

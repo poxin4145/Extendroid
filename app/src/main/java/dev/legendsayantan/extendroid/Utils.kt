@@ -68,6 +68,11 @@ class Utils {
             return false
         }
 
+        /** True when the build contains a usable Firebase configuration (Echo support). */
+        fun hasFirebaseConfig(ctx: Context): Boolean {
+            return ctx.resources.getIdentifier("google_app_id", "string", ctx.packageName) != 0
+        }
+
         fun isShizukuSetup(): Boolean {
             return Shizuku.pingBinder()
         }
@@ -83,14 +88,14 @@ class Utils {
         fun whenSafeForUI(ctx: Context, then: () -> Unit) {
             if (isShizukuSetup() && isShizukuAllowed()) {
                 if (!Settings.canDrawOverlays(ctx)) {
-                    Toast.makeText(ctx, "Please wait, starting soon!", Toast.LENGTH_LONG).show()
+                    Toast.makeText(ctx, LocaleHelper.wrap(ctx).getString(R.string.please_wait_starting_soon), Toast.LENGTH_LONG).show()
                     Handler(ctx.mainLooper).postDelayed({
                         whenSafeForUI(ctx, then)
                     }, 2000)
                 }
                 then()
             } else {
-                Toast.makeText(ctx, "Failure: Insufficient Setup!", Toast.LENGTH_LONG).show()
+                Toast.makeText(ctx, LocaleHelper.wrap(ctx).getString(R.string.insufficient_setup), Toast.LENGTH_LONG).show()
             }
         }
 
@@ -128,7 +133,7 @@ class Utils {
             if ("xiaomi" == Build.MANUFACTURER.lowercase(Locale.ROOT)) {
                 Toast.makeText(
                     this,
-                    "Please allow the required miui permissions!",
+                    LocaleHelper.wrap(this).getString(R.string.miui_permissions),
                     Toast.LENGTH_SHORT
                 ).show()
                 try {
@@ -176,7 +181,7 @@ class Utils {
             defaultName: String? = null,
             onConfirm: (String) -> Unit
         ) {
-            val themedCtx = ContextThemeWrapper(ctx, R.style.Theme_Extendroid)
+            val themedCtx = ContextThemeWrapper(LocaleHelper.wrap(ctx), R.style.Theme_Extendroid)
             val dialogView = LayoutInflater.from(themedCtx).inflate(R.layout.dialog_new_workspace, null)
             val heading = dialogView.findViewById<TextView>(R.id.heading)
             val nameInputLayout = dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.nameInputLayout)
@@ -186,7 +191,8 @@ class Utils {
             title?.let { heading.text = it }
             placeholder?.let { nameInputLayout.placeholderText = it }
             confirmText?.let { doneBtn.text = it }
-            val finalDefaultName = defaultName ?: "Extendroid Workspace ${getRunningWorkspaceCount(ctx) + 1}"
+            val finalDefaultName = defaultName
+            ?: ctx.getString(R.string.default_workspace_name, getRunningWorkspaceCount(ctx) + 1)
             nameInput.setText(finalDefaultName)
 
             val dialog = MaterialAlertDialogBuilder(themedCtx)
@@ -242,7 +248,7 @@ class Utils {
                 addView(heading)
                 addView(contents)
                 addView(MaterialButton(themedCtx).apply {
-                    text = "Understood"
+                    text = LocaleHelper.wrap(themedCtx).getString(R.string.understood)
                     textSize = 20f
                     setBackgroundColor(resources.getColor(R.color.theme3, null))
                     setTextColor(resources.getColor(R.color.theme0, null))

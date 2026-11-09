@@ -2,19 +2,19 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/action_popup_all"
-        android:title="Popup all" />
+        android:title="@string/action_popup_all" />
     <item
         android:id="@+id/action_fullscreen_all"
-        android:title="Fullscreen all" />
+        android:title="@string/action_fullscreen_all" />
     <item
         android:id="@+id/action_close_all"
-        android:title="Close all" />
+        android:title="@string/action_close_all" />
     <item
         android:id="@+id/action_disable_screen"
-        android:title="Disable Screen" />
+        android:title="@string/action_disable_screen" />
     <item
         android:id="@+id/action_start_app"
-        android:title="Configure"/>
+        android:title="@string/action_configure"/>
     <item
         android:id="@+id/action_new_workspace"
         android:title="@string/new_workspace" />

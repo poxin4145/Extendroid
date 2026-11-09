@@ -32,7 +32,7 @@
             app:boxStrokeColor="?attr/colorOnSecondary"
             app:hintTextColor="?attr/colorOnSecondary"
             app:placeholderTextColor="?attr/colorOnSecondary"
-            app:placeholderText="Workspace Name"
+            app:placeholderText="@string/workspace_name_hint"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText

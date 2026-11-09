@@ -1,6 +1,7 @@
 package dev.legendsayantan.extendroid
 
 import android.app.ActivityManager
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.widget.TextView
@@ -8,11 +9,15 @@ import androidx.appcompat.app.AppCompatActivity
 
 class WorkspaceActivity : AppCompatActivity() {
 
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_workspace)
 
-        val name = intent.getStringExtra(EXTRA_WORKSPACE_NAME) ?: "Workspace"
+        val name = intent.getStringExtra(EXTRA_WORKSPACE_NAME) ?: getString(R.string.workspace)
         findViewById<TextView>(R.id.workspaceTitle).text = name
         title = name
 
