@@ -231,6 +231,32 @@ class Utils {
         const val REPO_URL = "https://github.com/poxin4145/Extendroid"
         const val RELEASES_URL = "https://github.com/poxin4145/Extendroid/releases"
 
+        /** Language picker shared by the home screen and the overlay menu. */
+        fun showLanguageDialog(ctx: Context, onChanged: () -> Unit = {}) {
+            val localized = LocaleHelper.wrap(ctx)
+            val tags = LocaleHelper.selectable
+            val labels = tags.map { LocaleHelper.displayName(localized, it) }.toTypedArray()
+            val current = Prefs(ctx.applicationContext).language
+            val checked = tags.indexOf(current).coerceAtLeast(0)
+            val base = if (isActivityContext(ctx)) ctx else localized
+            val themedCtx = ContextThemeWrapper(base, R.style.Theme_Extendroid)
+            val dialog = MaterialAlertDialogBuilder(themedCtx)
+                .setTitle(localized.getString(R.string.language))
+                .setSingleChoiceItems(labels, checked) { d, which ->
+                    d.dismiss()
+                    val tag = tags[which]
+                    if (tag != current) {
+                        LocaleHelper.setLanguage(ctx, tag)
+                        onChanged()
+                    }
+                }
+                .create()
+            if (!isActivityContext(ctx)) {
+                dialog.window?.setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY)
+            }
+            dialog.show()
+        }
+
         /** Version, license and repository links. */
         fun showAboutDialog(ctx: Context) {
             val localized = LocaleHelper.wrap(ctx)

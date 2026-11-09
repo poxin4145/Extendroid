@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupFirebase() {
         if (!Utils.hasFirebaseConfig(this)) {
             EchoState.available = false
-            logging.i("No Firebase configuration found, Echo is disabled.", "MainActivity")
+            logging.i(getString(R.string.log_no_firebase), "MainActivity")
             return
         }
         try {
@@ -177,14 +177,8 @@ class MainActivity : AppCompatActivity() {
         val floatingBall = findViewById<MaterialSwitch>(R.id.floatingBall)
         val tasksRow = findViewById<LinearLayout>(R.id.tasksRow)
         val workspaceRow = findViewById<LinearLayout>(R.id.workspaceRow)
-        val languageRow = findViewById<LinearLayout>(R.id.languageRow)
-        val languageValue = findViewById<TextView>(R.id.languageValue)
         val helpRow = findViewById<LinearLayout>(R.id.helpRow)
-        val aboutRow = findViewById<LinearLayout>(R.id.aboutRow)
 
-        languageValue.text = LocaleHelper.displayName(this, prefs.language)
-        languageRow.setOnClickListener { showLanguageDialog() }
-        aboutRow.setOnClickListener { Utils.showAboutDialog(this) }
         helpRow.setOnClickListener {
             Utils.showInfoDialog(
                 this,
@@ -275,32 +269,6 @@ class MainActivity : AppCompatActivity() {
         logBtn.setOnClickListener {
             startActivity(Intent(applicationContext, LogsActivity::class.java))
         }
-    }
-
-    private fun showLanguageDialog() {
-        val tags = LocaleHelper.selectable
-        val labels = tags.map { LocaleHelper.displayName(this, it) }.toTypedArray()
-        val checked = tags.indexOf(prefs.language).coerceAtLeast(0)
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.language)
-            .setSingleChoiceItems(labels, checked) { dialog, which ->
-                dialog.dismiss()
-                val tag = tags[which]
-                if (tag != prefs.language) {
-                    LocaleHelper.setLanguage(this, tag)
-                    Toast.makeText(this, R.string.language_changed, Toast.LENGTH_SHORT).show()
-                    // The overlay menu lives in a service, ask it to rebuild in the new language.
-                    try {
-                        startService(
-                            Intent(this, ExtendService::class.java)
-                                .setAction(ExtendService.ACTION_RELOAD_LOCALE)
-                        )
-                    } catch (_: Exception) {
-                    }
-                    recreate()
-                }
-            }
-            .show()
     }
 
     private fun startForegroundService() {

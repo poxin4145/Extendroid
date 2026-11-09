@@ -9,6 +9,7 @@ import android.hardware.display.VirtualDisplay
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.view.Surface
+import dev.legendsayantan.extendroid.R
 import androidx.appcompat.app.AppCompatActivity
 import dev.legendsayantan.extendroid.Prefs
 import dev.legendsayantan.extendroid.echo.RemoteSessionRenderer
@@ -95,10 +96,16 @@ open class MediaCore {
                         packageName, width, height, density.toInt(), surface, flags
                     )
                 } catch (t: Throwable) {
-                    logger.e("DisplayManager display (flags=$flags) failed: ${t.message}", "MediaCore"); null
+                    logger.e(
+                        context.getString(R.string.log_display_create_failed, flags, t.message),
+                        "MediaCore"
+                    ); null
                 }
                 if (created != null) {
-                    logger.i("Created display $packageName with flags=$flags", "MediaCore")
+                    logger.i(
+                        context.getString(R.string.log_display_created, packageName, flags),
+                        "MediaCore"
+                    )
                     break
                 }
             }
@@ -112,7 +119,7 @@ open class MediaCore {
             }
         }
         if (created == null) {
-            logger.e("Cannot create a display for $packageName", "MediaCore")
+            logger.e(context.getString(R.string.log_display_unavailable, packageName), "MediaCore")
             return
         }
         virtualDisplays[packageName] = created

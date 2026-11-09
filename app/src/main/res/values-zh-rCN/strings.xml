@@ -111,6 +111,15 @@
     <string name="action_close_all">全部关闭</string>
     <string name="action_disable_screen">关闭屏幕</string>
     <string name="action_configure">配置</string>
+    <string name="action_language">语言</string>
+    <string name="action_about">关于</string>
+    <string name="log_display_created">已创建显示器 %1$s（flags=%2$d）</string>
+    <string name="log_display_create_failed">DisplayManager 建屏失败（flags=%1$d）：%2$s</string>
+    <string name="log_display_unavailable">无法为 %1$s 创建显示器</string>
+    <string name="log_projection_unavailable">投屏未就绪，无法为 %1$s 建屏</string>
+    <string name="log_launch">已在显示器 %2$d 上启动 %1$s：%3$s</string>
+    <string name="log_menu_show">菜单已显示（attached=%1$s，shizuku=%2$s，overlay=%3$s）</string>
+    <string name="log_no_firebase">没有 Firebase 配置，Echo 已禁用</string>
 
     <string name="notification_menu_title">点击打开 Extendroid 菜单</string>
     <string name="notification_echo_connections">Echo 有 %1$d 个活动连接。</string>

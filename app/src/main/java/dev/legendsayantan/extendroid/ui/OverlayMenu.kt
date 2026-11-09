@@ -56,6 +56,7 @@ class OverlayMenu(val ctx: Context) : FrameLayout(ctx) {
     var requestDisableScreen: () -> Unit = {}
     var requestStartSelf: () -> Unit = {}
     var requestNewWorkspace: () -> Unit = {}
+    var onLanguageChanged: () -> Unit = {}
     var dispatchEvent:(String, MotionEvent)-> Unit = {pkg,e->}
 
     private val wm = ctx.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -408,8 +409,16 @@ class OverlayMenu(val ctx: Context) : FrameLayout(ctx) {
                     }
 
                     R.id.action_fullscreen_all -> {
-                        activeWindowsData.forEach { data ->
-                            MediaCore.mInstance?.fullScreen(data.packageName)
+                        val metrics = ctx.resources.displayMetrics
+                        activeWindowsData.toList().forEach { data ->
+                            val color = installedApps.find { it.packageName == data.packageName }
+                                ?.let { Utils.getColorOf(it.image) } ?: 0xFF888888.toInt()
+                            openInPopup(
+                                data.packageName,
+                                metrics.widthPixels,
+                                metrics.heightPixels,
+                                color
+                            )
                         }
                         activeWindowsData.clear()
                         hide()
@@ -426,6 +435,16 @@ class OverlayMenu(val ctx: Context) : FrameLayout(ctx) {
                     R.id.action_start_app -> {
                         requestStartSelf()
                         hide()
+                    }
+
+                    R.id.action_language -> {
+                        Utils.showLanguageDialog(ctx) {
+                            onLanguageChanged()
+                        }
+                    }
+
+                    R.id.action_about -> {
+                        Utils.showAboutDialog(ctx)
                     }
 
                     R.id.action_new_workspace -> {
@@ -483,8 +502,12 @@ class OverlayMenu(val ctx: Context) : FrameLayout(ctx) {
 
     fun show() {
         Logging(ctx).d(
-            "show(): attached=${parent != null} shizuku=${Utils.isShizukuSetup()} " +
-                    "overlay=${android.provider.Settings.canDrawOverlays(ctx)}",
+            ctx.getString(
+                R.string.log_menu_show,
+                parent != null,
+                Utils.isShizukuSetup(),
+                android.provider.Settings.canDrawOverlays(ctx)
+            ),
             "OverlayMenu"
         )
         Utils.whenSafeForUI(ctx) {

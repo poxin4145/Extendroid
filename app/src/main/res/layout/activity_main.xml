@@ -166,38 +166,6 @@
                 android:textSize="20sp" />
 
             <LinearLayout
-                android:id="@+id/languageRow"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/language"
-                    android:textSize="20sp" />
-
-                <TextView
-                    android:id="@+id/languageValue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="10dp"
-                    android:text="@string/language_system"
-                    android:textColor="?attr/colorOnSecondary"
-                    android:textSize="18sp" />
-
-                <ImageView
-                    android:id="@+id/languageImage"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:src="@drawable/rounded_arrow_circle_right_24"
-                    app:tint="?attr/colorOnSecondary" />
-            </LinearLayout>
-
-            <LinearLayout
                 android:id="@+id/tasksRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -263,28 +231,6 @@
                     android:layout_width="50dp"
                     android:layout_height="50dp"
                     android:src="@drawable/rounded_info_24"
-                    app:tint="?attr/colorOnSecondary" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/aboutRow"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/about"
-                    android:textSize="20sp" />
-
-                <ImageView
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:src="@drawable/rounded_star_rate_24"
                     app:tint="?attr/colorOnSecondary" />
             </LinearLayout>
 

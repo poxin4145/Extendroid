@@ -18,4 +18,10 @@
     <item
         android:id="@+id/action_new_workspace"
         android:title="@string/new_workspace" />
+    <item
+        android:id="@+id/action_language"
+        android:title="@string/action_language" />
+    <item
+        android:id="@+id/action_about"
+        android:title="@string/action_about" />
 </menu>

@@ -76,7 +76,10 @@ class ExtendService : Service() {
                 val result = callService("Error: root service unavailable") {
                     it.launchAppOnDisplay(packageName, displayID)
                 }
-                logging.i("Launch $packageName on display $displayID -> $result", "ExtendService")
+                logging.i(
+                    getString(R.string.log_launch, packageName, displayID, result),
+                    "ExtendService"
+                )
             }
 
             override fun appTaskToClear(packageName: String) {
@@ -304,6 +307,9 @@ class ExtendService : Service() {
                 }
                 startActivity(intent)
             }
+        }
+        menu.onLanguageChanged = {
+            reloadLanguage()
         }
         menu.dispatchEvent = { pkg, event ->
             print("${event.x} ${event.y} ${MotionEvent.actionToString(event.action)} ${event.rawX} ${event.rawY}")
