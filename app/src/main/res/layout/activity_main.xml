@@ -266,6 +266,28 @@
                     app:tint="?attr/colorOnSecondary" />
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/aboutRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/about"
+                    android:textSize="20sp" />
+
+                <ImageView
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/rounded_star_rate_24"
+                    app:tint="?attr/colorOnSecondary" />
+            </LinearLayout>
+
         </LinearLayout>
 
         <LinearLayout

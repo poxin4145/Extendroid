@@ -78,6 +78,11 @@
     <string name="language_changed">语言已切换，正在重启…</string>
 
     <string name="help">使用说明</string>
+    <string name="about">关于</string>
+    <string name="close">关闭</string>
+    <string name="about_source">源码仓库</string>
+    <string name="about_releases">下载页</string>
+    <string name="about_message">版本 %1$s\n\n基于 Shizuku 的开源 Android 多窗口管理器，遵循 GPLv3 协议。\n\n上游项目：legendsayantan/Extendroid\n本分支：poxin4145/Extendroid\n\n更新日志、下载与问题反馈都在 GitHub 上。</string>
     <string name="help_title">Extendroid 使用说明</string>
     <string name="help_text">快速上手\n1. 安装 Shizuku（shizuku.rikka.app），并通过 ADB 或 root 启动它。\n2. 打开 Extendroid，点击「配置 Shizuku」，在弹出的请求中授予权限。\n3. 允许「显示在其他应用上层」权限，否则窗口无法显示。\n4. 从通知栏或悬浮球打开控制面板。\n5. 在 ☆（最近使用）或 ＋（全部应用）中选择应用，加载实时预览。\n6. 点击预览即可浮窗打开应用，长按预览可全屏。\n7. 拖动顶部把手移动窗口，拖动底部两角自由调整大小。\n8. 点击顶部把手可展开「最小化 / 最大化 / 返回 / 关闭」。\n\n使用技巧\n• 最小化后应用继续运行，预览画面保持实时更新。\n• 使用 ⋮ 菜单可在应用继续运行的同时关闭屏幕。\n• 语言可随时在「选项 → 语言」中切换。\n• Echo（远程访问）需要 Firebase 配置，未配置的版本会自动隐藏该入口。</string>
 

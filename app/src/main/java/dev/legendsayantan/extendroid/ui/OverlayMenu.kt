@@ -247,11 +247,14 @@ class OverlayMenu(val ctx: Context) : FrameLayout(ctx) {
                         hide()
                     },
                     onLongClick = { pkg ->
-                        MediaCore.mInstance?.let {
-                            it.fullScreen(pkg)
-                            activeWindowsData.removeIf { it.packageName == pkg }
-                            hide()
-                        }
+                        // Open it as a full screen window instead of releasing the display,
+                        // which used to kill the app.
+                        val metrics = ctx.resources.displayMetrics
+                        val color = installedApps.find { it.packageName == pkg }
+                            ?.let { Utils.getColorOf(it.image) } ?: 0xFF888888.toInt()
+                        openInPopup(pkg, metrics.widthPixels, metrics.heightPixels, color)
+                        activeWindowsData.removeIf { it.packageName == pkg }
+                        hide()
                     },
                     onTouchEvent = { pkg, event ->
                         setAutoHide()
@@ -317,6 +320,9 @@ class OverlayMenu(val ctx: Context) : FrameLayout(ctx) {
         val densityScale = root!!.findViewById<Slider>(R.id.densityScale)
         val dimAmount = root!!.findViewById<Slider>(R.id.dimAmount)
         val recordTask = root!!.findViewById<MaterialButton>(R.id.recordTask)
+        root!!.findViewById<android.widget.TextView>(R.id.aboutSettings)?.setOnClickListener {
+            Utils.showAboutDialog(ctx)
+        }
 
         collapseSeconds.hint = prefs.collapseSeconds.toString()
         if (collapseSeconds.text.isNullOrBlank()) {

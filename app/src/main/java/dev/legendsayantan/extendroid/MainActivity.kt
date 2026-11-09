@@ -180,9 +180,11 @@ class MainActivity : AppCompatActivity() {
         val languageRow = findViewById<LinearLayout>(R.id.languageRow)
         val languageValue = findViewById<TextView>(R.id.languageValue)
         val helpRow = findViewById<LinearLayout>(R.id.helpRow)
+        val aboutRow = findViewById<LinearLayout>(R.id.aboutRow)
 
         languageValue.text = LocaleHelper.displayName(this, prefs.language)
         languageRow.setOnClickListener { showLanguageDialog() }
+        aboutRow.setOnClickListener { Utils.showAboutDialog(this) }
         helpRow.setOnClickListener {
             Utils.showInfoDialog(
                 this,

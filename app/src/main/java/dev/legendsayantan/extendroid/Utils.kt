@@ -228,6 +228,43 @@ class Utils {
             }
         }
 
+        const val REPO_URL = "https://github.com/poxin4145/Extendroid"
+        const val RELEASES_URL = "https://github.com/poxin4145/Extendroid/releases"
+
+        /** Version, license and repository links. */
+        fun showAboutDialog(ctx: Context) {
+            val localized = LocaleHelper.wrap(ctx)
+            val version = try {
+                val info = ctx.packageManager.getPackageInfo(ctx.packageName, 0)
+                val code = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    info.longVersionCode
+                } else {
+                    @Suppress("DEPRECATION")
+                    info.versionCode.toLong()
+                }
+                "${info.versionName} ($code)"
+            } catch (t: Throwable) {
+                "?"
+            }
+            val base = if (isActivityContext(ctx)) ctx else localized
+            val themedCtx = ContextThemeWrapper(base, R.style.Theme_Extendroid)
+            val dialog = MaterialAlertDialogBuilder(themedCtx)
+                .setTitle(localized.getString(R.string.about))
+                .setMessage(localized.getString(R.string.about_message, version))
+                .setPositiveButton(localized.getString(R.string.about_source)) { _, _ ->
+                    localized.launchOnDefaultBrowser(REPO_URL)
+                }
+                .setNeutralButton(localized.getString(R.string.about_releases)) { _, _ ->
+                    localized.launchOnDefaultBrowser(RELEASES_URL)
+                }
+                .setNegativeButton(localized.getString(R.string.close), null)
+                .create()
+            if (!isActivityContext(ctx)) {
+                dialog.window?.setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY)
+            }
+            dialog.show()
+        }
+
         fun showInfoDialog(themedCtx: Context, title: String, content: String, then: () -> Unit) {
             lateinit var dialog: AlertDialog
             val builder = MaterialAlertDialogBuilder(themedCtx)

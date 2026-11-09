@@ -261,8 +261,14 @@ class PopupWindow(
 
         controls.visibility = GONE
 
-        hideBtn.setOnClickListener { onDeleteRequest(PopupManager.PopupDeleteReason.MINIMIZE) }
-        fullBtn.setOnClickListener { onDeleteRequest(PopupManager.PopupDeleteReason.MAXIMIZE) }
+        // Resize instead of closing: removing the window (and its virtual display) looked like
+        // the app had crashed. Long press keeps the old "back to preview" behaviour.
+        hideBtn.setOnClickListener { shrinkOrRestore() }
+        hideBtn.setOnLongClickListener {
+            onDeleteRequest(PopupManager.PopupDeleteReason.MINIMIZE)
+            true
+        }
+        fullBtn.setOnClickListener { maximizeOrRestore() }
         backBtn.setOnTouchListener { view, event ->
             when (event?.action) {
                 MotionEvent.ACTION_DOWN -> onKeyEventCallback(
@@ -309,6 +315,53 @@ class PopupWindow(
                 controls.visibility = GONE
             }, 250)
         } catch (_: Exception) {
+        }
+    }
+
+    private var savedBounds: IntArray? = null
+
+    /** Fills the screen with this window, or restores the previous bounds. */
+    fun maximizeOrRestore() {
+        val metrics = resources.displayMetrics
+        val saved = savedBounds
+        if (saved == null) {
+            savedBounds = intArrayOf(positionParams.x, positionParams.y, positionParams.width, positionParams.height)
+            applyBounds(0, 0, metrics.widthPixels, metrics.heightPixels)
+        } else {
+            applyBounds(saved[0], saved[1], saved[2], saved[3])
+            savedBounds = null
+        }
+    }
+
+    /** Shrinks the window to a comfortable size, or restores the previous bounds. */
+    fun shrinkOrRestore() {
+        val metrics = resources.displayMetrics
+        val saved = savedBounds
+        if (saved == null) {
+            savedBounds = intArrayOf(positionParams.x, positionParams.y, positionParams.width, positionParams.height)
+            val w = (metrics.widthPixels * 0.55f).toInt()
+            val h = (metrics.heightPixels * 0.45f).toInt()
+            applyBounds(
+                ((metrics.widthPixels - w) / 2).coerceAtLeast(0),
+                ((metrics.heightPixels - h) / 3).coerceAtLeast(0),
+                w,
+                h
+            )
+        } else {
+            applyBounds(saved[0], saved[1], saved[2], saved[3])
+            savedBounds = null
+        }
+    }
+
+    private fun applyBounds(x: Int, y: Int, width: Int, height: Int) {
+        positionParams.x = x
+        positionParams.y = y
+        positionParams.width = width.coerceAtLeast(getLimit(ctx).toInt())
+        positionParams.height = height.coerceAtLeast(getLimit(ctx).toInt())
+        try {
+            wm.updateViewLayout(this, positionParams)
+        } catch (t: Throwable) {
+            Logging(ctx).e(t as? Exception ?: Exception(t), "PopupWindow")
         }
     }
 

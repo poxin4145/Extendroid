@@ -87,6 +87,11 @@
 
     <!-- Help -->
     <string name="help">Help</string>
+    <string name="about">About</string>
+    <string name="close">Close</string>
+    <string name="about_source">Source code</string>
+    <string name="about_releases">Releases</string>
+    <string name="about_message">Version %1$s\n\nAn open source Android multi window manager for Shizuku, licensed under GPLv3.\n\nUpstream: legendsayantan/Extendroid\nThis fork: poxin4145/Extendroid\n\nChangelog, downloads and bug reports are on GitHub.</string>
     <string name="help_title">How to use Extendroid</string>
     <string name="help_text">Quick start\n1. Install Shizuku (shizuku.rikka.app) and start it over ADB or root.\n2. Open Extendroid, tap “Setup Shizuku” and grant the permission request.\n3. Allow “Display over other apps”, otherwise windows cannot be drawn.\n4. Open the control menu from the notification or from the floating ball.\n5. Pick an app in ☆ (recent) or ＋ (all apps) to load its live preview.\n6. Tap the preview to open the app in a popup window, long press it to go fullscreen.\n7. Drag the top handle to move a window, drag the bottom corners to resize it.\n8. Tap the top handle for minimize / maximize / back / close.\n\nTips\n• Minimised apps keep running and their live preview stays up to date.\n• The ⋮ menu can turn the screen off while every app keeps running.\n• Change the language any time in Options → Language.\n• Echo (remote access) needs a Firebase configuration and is hidden when the build has none.</string>
 
