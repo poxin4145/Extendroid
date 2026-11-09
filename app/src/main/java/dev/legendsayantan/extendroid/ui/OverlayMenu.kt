@@ -474,26 +474,31 @@ class OverlayMenu(val ctx: Context) : FrameLayout(ctx) {
     }
 
     fun show() {
+        Logging(ctx).d(
+            "show(): attached=${parent != null} shizuku=${Utils.isShizukuSetup()} " +
+                    "overlay=${android.provider.Settings.canDrawOverlays(ctx)}",
+            "OverlayMenu"
+        )
         Utils.whenSafeForUI(ctx) {
             // A pending hide would otherwise remove the view right after it was shown again.
             uiHandler.removeCallbacks(removeRunnable)
-            if (parent == null) {
+            if (parent != null) {
                 try {
-                    scaleY = 0f
-                    alpha = 1f
-                    wm.addView(this, layoutParams)
-                } catch (t: Throwable) {
-                    Logging(ctx).e(t as? Exception ?: Exception(t), "OverlayMenu")
-                    return@whenSafeForUI
+                    wm.removeView(this)
+                } catch (_: Throwable) {
                 }
-            } else {
-                // Still attached (or the previous removal failed): make it visible again.
+            }
+            try {
+                animate().cancel()
                 scaleY = 1f
                 alpha = 1f
                 visibility = View.VISIBLE
+                wm.addView(this, layoutParams)
+            } catch (t: Throwable) {
+                Logging(ctx).e(t as? Exception ?: Exception(t), "OverlayMenu")
+                return@whenSafeForUI
             }
             isShowing = true
-            animate().scaleY(1f).setDuration(250).start()
             setAutoHide()
             try {
                 tabLayout.getTabAt(tabLayout.selectedTabPosition)?.let { reloadTabContents(it) }
