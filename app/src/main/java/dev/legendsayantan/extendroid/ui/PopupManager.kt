@@ -24,7 +24,14 @@ class PopupManager(val context: Context) {
                 it.x + (if ((metrics.widthPixels / 2) > (it.x + (it.width / 2))) 50 else -50),
                 it.y + (if ((metrics.heightPixels / 2) > (it.y + (it.height / 2))) 50 else -50)
             )
-        } ?: Pair(0, 100)
+        } ?: run {
+            // Keep the first window clear of the status bar and the screen edges.
+            val metrics = context.resources.displayMetrics
+            Pair(
+                (metrics.widthPixels * 0.06f).toInt(),
+                (metrics.heightPixels * 0.12f).toInt()
+            )
+        }
     }
 
     fun createNew(packageName: String, w: Int, h: Int, color: Int) {

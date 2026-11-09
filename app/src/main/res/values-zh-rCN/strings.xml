@@ -99,6 +99,7 @@
     <string name="log_report_header">Extendroid %1$s · Android %2$s · %3$s</string>
     <string name="log_single_entry">%1$s | %2$s\n%3$s</string>
     <string name="popup_failed">无法显示浮窗，请允许「显示在其他应用上层」权限。</string>
+    <string name="overlay_blocked">系统暂时隐藏了悬浮窗：某些应用（如「设置」「短信」）会屏蔽其他应用的悬浮窗。</string>
 
     <string name="action_popup_all">全部浮窗打开</string>
     <string name="action_fullscreen_all">全部全屏</string>

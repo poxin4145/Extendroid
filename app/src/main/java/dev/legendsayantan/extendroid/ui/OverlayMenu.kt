@@ -538,6 +538,18 @@ class OverlayMenu(val ctx: Context) : FrameLayout(ctx) {
         }
     }
 
+    /**
+     * Some apps (Settings, Messages, banking apps...) set HIDE_NON_SYSTEM_OVERLAY_WINDOWS, which
+     * makes the system hide every floating window of other apps. Tell the user instead of
+     * silently showing nothing.
+     */
+    override fun onWindowVisibilityChanged(visibility: Int) {
+        super.onWindowVisibilityChanged(visibility)
+        if (visibility != View.VISIBLE && isShowing) {
+            Toast.makeText(ctx, R.string.overlay_blocked, Toast.LENGTH_LONG).show()
+        }
+    }
+
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         removeAutoHide()
