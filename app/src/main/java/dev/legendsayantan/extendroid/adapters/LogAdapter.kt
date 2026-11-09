@@ -11,7 +11,9 @@ import dev.legendsayantan.extendroid.lib.Logging.Level;
 import dev.legendsayantan.extendroid.R;
 
 class LogAdapter(
-    initialLogs: Map<String, String> = emptyMap()
+    initialLogs: Map<String, String> = emptyMap(),
+    /** Invoked on a long press, used to copy a single entry. */
+    private val onLongClick: (LogEntry) -> Unit = {}
 ) : RecyclerView.Adapter<LogAdapter.LogViewHolder>() {
 
     private val items = mutableListOf<LogEntry>()
@@ -89,6 +91,11 @@ class LogAdapter(
             } catch (e: IllegalArgumentException) {
                 // fallback to light gray translucent if parse fails
                 container?.setBackgroundColor(Color.parseColor("#33CCCCCC"))
+            }
+
+            itemView.setOnLongClickListener {
+                onLongClick(entry)
+                true
             }
         }
     }

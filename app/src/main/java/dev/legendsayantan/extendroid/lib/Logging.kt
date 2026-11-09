@@ -54,6 +54,24 @@ class Logging(val ctx: Context) {
         saveLog(Level.NOTIFICATION, channelId, "$title\n$message")
     }
 
+    /** Persists an uncaught exception synchronously, it has to survive the dying process. */
+    fun saveCrash(thread: Thread, throwable: Throwable) {
+        val details = buildString {
+            append("CRASH on thread '").append(thread.name).append("'\n")
+            append("Android ").append(android.os.Build.VERSION.RELEASE)
+                .append(" (SDK ").append(android.os.Build.VERSION.SDK_INT).append("), ")
+                .append(android.os.Build.MANUFACTURER).append(' ')
+                .append(android.os.Build.MODEL).append('\n')
+            append(throwable.stackTraceToString())
+        }
+        val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.ROOT).format(Date())
+        // commit() instead of apply(): apply() is asynchronous and would be lost when the
+        // process is torn down right after the crash.
+        logs.edit()
+            .putString("$timestamp|${Level.ERROR.key}", "[CRASH] $details\n")
+            .commit()
+    }
+
     fun clearLogsOlderThan(days: Int) {
         val cutoff = System.currentTimeMillis() - days * 24 * 60 * 60 * 1000
         val keysToRemove = logs.all.keys.filter { key ->

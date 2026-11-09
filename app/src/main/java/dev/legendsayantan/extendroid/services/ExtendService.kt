@@ -73,12 +73,14 @@ class ExtendService : Service() {
             }
 
             override fun virtualDisplayReady(packageName: String, displayID: Int) {
-                svc?.launchAppOnDisplay(packageName, displayID)
+                val result = callService("Error: root service unavailable") {
+                    it.launchAppOnDisplay(packageName, displayID)
+                }
+                logging.i("Launch $packageName on display $displayID -> $result", "ExtendService")
             }
 
             override fun appTaskToClear(packageName: String) {
-                val r = svc?.exitTasks(packageName);
-                println(r)
+                callService("") { it.exitTasks(packageName) }
             }
         }
 
@@ -234,13 +236,13 @@ class ExtendService : Service() {
 
 
     private fun grantOwnPerms() {
-        val r = svc?.grantPermissions(
+        val r = callService("") { it.grantPermissions(
             arrayOf(
                 "PROJECT_MEDIA",
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.POST_NOTIFICATIONS else "",
                 if (!Settings.canDrawOverlays(applicationContext)) Manifest.permission.SYSTEM_ALERT_WINDOW else ""
             ).filter { it.isNotBlank() }
-        )
+            ) }
         logging.d(r.toString(),"ExtendService")
     }
 
@@ -265,7 +267,7 @@ class ExtendService : Service() {
     private fun setupUI() {
         setupPrefsRelated()
         menu.getTopApps = {
-            svc?.getTopTenApps() ?: listOf()
+            callService(listOf<String>()) { it.getTopTenApps() }
         }
         menu.openInPopup = { s, w, h, c ->
             popupManager.createNew(s, w, h, c)
@@ -277,10 +279,10 @@ class ExtendService : Service() {
             popupManager.deletePopup(it, PopupManager.PopupDeleteReason.MINIMIZE)
         }
         menu.requestDisableScreen = {
-            svc?.setBuiltInDisplayPowerMode(0)
+            callService("") { it.setBuiltInDisplayPowerMode(0) }
         }
         menu.requestStartSelf = {
-            svc?.launchAppOnDisplay(packageName, Display.DEFAULT_DISPLAY)
+            callService("") { it.launchAppOnDisplay(packageName, Display.DEFAULT_DISPLAY) }
         }
         menu.requestNewWorkspace = {
             Utils.showWorkspaceNameDialog(this) { name ->
@@ -299,12 +301,8 @@ class ExtendService : Service() {
             menu.startPreviewFor(pkg, ratio)
         }
         popupManager.onKeyEvent = { pkg, keyCode, action ->
-            val r = svc?.dispatchKey(
-                keyCode,
-                action,
-                MediaCore.mInstance?.virtualDisplays?.get(pkg)?.display?.displayId ?: -1, 0
-            )
-            println(r)
+            val displayId = MediaCore.mInstance?.virtualDisplays?.get(pkg)?.display?.displayId ?: -1
+            callService("") { it.dispatchKey(keyCode, action, displayId, 0) }
         }
         popupManager.onMotionEvent = { pkg, event ->
             print("${event.x} ${event.y} ${event.action} ${event.rawX} ${event.rawY}")
@@ -314,10 +312,27 @@ class ExtendService : Service() {
     }
 
     fun sendEvent(pkg: String, event: MotionEvent): String {
-        return svc?.dispatch(
-            event,
-            MediaCore.mInstance?.virtualDisplays?.get(pkg)?.display?.displayId ?: -1
-        ).toString()
+        val displayId = MediaCore.mInstance?.virtualDisplays?.get(pkg)?.display?.displayId ?: -1
+        return callService("") { it.dispatch(event, displayId) }
+    }
+
+    /**
+     * Runs [block] against the privileged service. If the root service process died (some ROMs
+     * kill it while loading hidden framework classes) the call is swallowed and the service is
+     * rebound instead of taking the whole app down with a DeadObjectException.
+     */
+    private fun <T> callService(default: T, block: (IRootService) -> T): T {
+        val service = svc ?: return default
+        return try {
+            block(service)
+        } catch (e: Exception) {
+            logging.e(e, "ExtendService")
+            if (e is android.os.RemoteException) {
+                svc = null
+                Handler(mainLooper).post { bindPrivilegedService() }
+            }
+            default
+        }
     }
 
     override fun onDestroy() {

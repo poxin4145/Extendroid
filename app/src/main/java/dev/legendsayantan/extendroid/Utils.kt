@@ -181,7 +181,10 @@ class Utils {
             defaultName: String? = null,
             onConfirm: (String) -> Unit
         ) {
-            val themedCtx = ContextThemeWrapper(LocaleHelper.wrap(ctx), R.style.Theme_Extendroid)
+            // Keep the Activity context as the base when there is one: wrapping it would drop the
+            // window token and Dialog.show() would fail with BadTokenException.
+            val baseCtx = if (isActivityContext(ctx)) ctx else LocaleHelper.wrap(ctx)
+            val themedCtx = ContextThemeWrapper(baseCtx, R.style.Theme_Extendroid)
             val dialogView = LayoutInflater.from(themedCtx).inflate(R.layout.dialog_new_workspace, null)
             val heading = dialogView.findViewById<TextView>(R.id.heading)
             val nameInputLayout = dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.nameInputLayout)

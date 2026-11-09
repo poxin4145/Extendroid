@@ -16,6 +16,7 @@ import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.widget.AppCompatImageView
 import com.google.android.material.card.MaterialCardView
 import dev.legendsayantan.extendroid.R
@@ -23,6 +24,7 @@ import dev.legendsayantan.extendroid.Utils.Companion.dpToPx
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.get
 import dev.legendsayantan.extendroid.Utils
+import dev.legendsayantan.extendroid.lib.Logging
 import java.util.Timer
 import kotlin.concurrent.timerTask
 
@@ -310,11 +312,24 @@ class PopupWindow(
         }
     }
 
+    /** True once the window was really added to the window manager. */
+    var isAddedToWindow = false
+        private set
+
     fun show(): PopupWindow {
         if (parent == null) {
-            wm.addView(this, positionParams)
-            alpha = 0f
-            animate().alpha(1f).scaleY(1f).setDuration(250).start()
+            try {
+                wm.addView(this, positionParams)
+                isAddedToWindow = true
+                alpha = 0f
+                animate().alpha(1f).scaleY(1f).setDuration(250).start()
+            } catch (t: Throwable) {
+                // Usually a missing "display over other apps" permission. Report it instead of
+                // letting BadTokenException kill the app.
+                isAddedToWindow = false
+                Logging(ctx).e(t as? Exception ?: Exception(t), "PopupWindow")
+                Toast.makeText(ctx, R.string.popup_failed, Toast.LENGTH_LONG).show()
+            }
         }
         return this
     }
@@ -324,7 +339,11 @@ class PopupWindow(
             animate().alpha(0f).scaleY(0f).setDuration(250).start()
             controlTimer.cancel()
             handler.postDelayed({
-                wm.removeView(this)
+                try {
+                    wm.removeView(this)
+                } catch (t: Throwable) {
+                    Logging(ctx).e(t as? Exception ?: Exception(t), "PopupWindow")
+                }
             },250)
         }
     }

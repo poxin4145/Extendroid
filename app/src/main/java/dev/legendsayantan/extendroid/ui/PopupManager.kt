@@ -43,7 +43,10 @@ class PopupManager(val context: Context) {
         }
         newPopup.onTouchEventCallback = { onMotionEvent(packageName, it) }
         newPopup.onDeleteRequest = { deletePopup(packageName, it) }
-        popupWindows[packageName] = newPopup.show()
+        val shown = newPopup.show()
+        if (shown.isAddedToWindow) {
+            popupWindows[packageName] = shown
+        }
     }
 
     fun hasPopup(packageName: String): Boolean {

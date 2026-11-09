@@ -102,6 +102,13 @@
     <string name="order">order</string>
     <string name="invalid_number">Invalid number</string>
     <string name="logs_cleared">Logs older than %1$d days were cleared.</string>
+    <string name="copy_logs">Copy</string>
+    <string name="share_logs">Share</string>
+    <string name="logs_copied">Logs copied to the clipboard</string>
+    <string name="share_logs_title">Share logs</string>
+    <string name="log_report_header">Extendroid %1$s · Android %2$s · %3$s</string>
+    <string name="log_single_entry">%1$s | %2$s\n%3$s</string>
+    <string name="popup_failed">Unable to show the floating window. Please allow “display over other apps”.</string>
 
     <!-- Overflow menu -->
     <string name="action_popup_all">Popup all</string>

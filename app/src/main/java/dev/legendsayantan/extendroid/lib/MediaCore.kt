@@ -81,20 +81,27 @@ open class MediaCore {
             updateSurface(packageName, surface)
             return
         }
-        projection?.createVirtualDisplay(
-            packageName,
-            width,
-            height,
-            density.toInt(),
-            DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC + DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-            surface,
-            null,
-            null
-        )?.let {
-            virtualDisplays[packageName] = it
-            virtualDisplayReady(
-                packageName, it.display.displayId
+        try {
+            projection?.createVirtualDisplay(
+                packageName,
+                width,
+                height,
+                density.toInt(),
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC + DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                surface,
+                null,
+                null
+            )?.let {
+                virtualDisplays[packageName] = it
+                virtualDisplayReady(
+                    packageName, it.display.displayId
+                )
+            } ?: Logging(context).e(
+                "MediaProjection is not ready, cannot create a display for $packageName",
+                "MediaCore"
             )
+        } catch (t: Throwable) {
+            Logging(context).e(t as? Exception ?: Exception(t), "MediaCore")
         }
     }
 
@@ -113,9 +120,8 @@ open class MediaCore {
     }
 
     fun updateSurface(packageName: String, surface: Surface) {
-        virtualDisplays[packageName]?.let {
-            it.surface = surface
-        } ?: throw RuntimeException("Virtual display for $packageName not found")
+        // The display may not exist yet when a popup surface arrives first; that is harmless.
+        virtualDisplays[packageName]?.surface = surface
     }
 
     fun newSessionRenderer(

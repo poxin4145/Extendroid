@@ -92,6 +92,13 @@
     <string name="order">排序</string>
     <string name="invalid_number">数字无效</string>
     <string name="logs_cleared">已清除 %1$d 天前的日志。</string>
+    <string name="copy_logs">复制</string>
+    <string name="share_logs">分享</string>
+    <string name="logs_copied">已复制到剪贴板</string>
+    <string name="share_logs_title">分享日志</string>
+    <string name="log_report_header">Extendroid %1$s · Android %2$s · %3$s</string>
+    <string name="log_single_entry">%1$s | %2$s\n%3$s</string>
+    <string name="popup_failed">无法显示浮窗，请允许「显示在其他应用上层」权限。</string>
 
     <string name="action_popup_all">全部浮窗打开</string>
     <string name="action_fullscreen_all">全部全屏</string>

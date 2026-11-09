@@ -92,9 +92,15 @@ class RootService() : IRootService.Stub() {
     }
 
     override fun setBuiltInDisplayPowerMode(mode: Int): String {
+        val ctx = context
         return try {
-            DisplayHelper.setDisplayPowerMode(mode)
-            "success"
+            when {
+                DisplayHelper.setDisplayPowerMode(mode) -> "success"
+                // Some OEM ROMs cannot load the hidden display control library; switching the
+                // screen off through the power manager gives the same visible result.
+                mode == 0 && ctx != null && DisplayHelper.goToSleepRobust(ctx) -> "success"
+                else -> "Error: display power mode is not supported on this ROM"
+            }
         } catch (e: Exception) {
             e.stackTraceToString()
         }

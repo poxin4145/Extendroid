@@ -29,9 +29,36 @@ class DisplayHelper {
         val SurfaceControlClass = Class.forName("android.view.SurfaceControl")
         var DisplayControlClass: Class<*>? = null
 
-        init {
+        private const val TAG = "DisplayHelper"
+        private var displayControlResolved = false
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        /**
+         * `libandroid_servers` registers a long list of framework server classes during
+         * JNI_OnLoad and aborts the process when one of them is missing. Some OEM builds
+         * (observed on HONOR / Android 16) ship a services.jar that does not match the
+         * library, so the class is probed before the library is loaded. Without the probe
+         * the whole root service process dies and every binder call fails afterwards.
+         */
+        private fun isServerLibraryUsable(loader: ClassLoader): Boolean {
+            return try {
+                Class.forName("com.android.server.TrustedUIService", false, loader)
+                true
+            } catch (t: Throwable) {
+                Log.w(TAG, "android_servers cannot be registered on this ROM: ${t.message}")
+                false
+            }
+        }
+
+        /**
+         * Loads `com.android.server.display.DisplayControl` lazily. Returns null when the
+         * running ROM does not allow it, callers then fall back to a public API.
+         */
+        @Synchronized
+        private fun resolveDisplayControl(): Class<*>? {
+            if (displayControlResolved) return DisplayControlClass
+            displayControlResolved = true
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return null
+            try {
                 val classLoaderFactoryClass =
                     Class.forName("com.android.internal.os.ClassLoaderFactory")
                 val createClassLoaderMethod = classLoaderFactoryClass.getDeclaredMethod(
@@ -54,21 +81,25 @@ class DisplayHelper {
                     true,
                     null
                 ) as ClassLoader
-                DisplayControlClass =
+                val displayControl =
                     classLoader.loadClass("com.android.server.display.DisplayControl")
-
+                if (!isServerLibraryUsable(classLoader)) {
+                    DisplayControlClass = null
+                    return null
+                }
                 val loadLibraryMethod = Runtime::class.java.getDeclaredMethod(
                     "loadLibrary0",
                     Class::class.java,
                     String::class.java
                 )
                 loadLibraryMethod.isAccessible = true
-                loadLibraryMethod.invoke(
-                    Runtime.getRuntime(),
-                    DisplayControlClass,
-                    "android_servers"
-                )
+                loadLibraryMethod.invoke(Runtime.getRuntime(), displayControl, "android_servers")
+                DisplayControlClass = displayControl
+            } catch (t: Throwable) {
+                Log.w(TAG, "DisplayControl is unavailable: ${t.message}")
+                DisplayControlClass = null
             }
+            return DisplayControlClass
         }
 
         @SuppressLint("PrivateApi", "BlockedPrivateApi")
@@ -167,30 +198,45 @@ class DisplayHelper {
             return method.invoke(null) as IBinder?
         }
 
-        fun setDisplayPowerMode(mode:Int){
-            val method: Method = SurfaceControlClass.getMethod(
-                "setDisplayPowerMode",
-                IBinder::class.java,
-                Int::class.javaPrimitiveType
-            )
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && DisplayControlClass != null) {
-                val getPhysicalDisplayIdsMethod: Method =
-                    DisplayControlClass!!.getMethod("getPhysicalDisplayIds")
-                val getPhysicalDisplayTokenMethod: Method = DisplayControlClass!!.getMethod(
-                    "getPhysicalDisplayToken",
-                    Long::class.javaPrimitiveType
+        /**
+         * Changes the power mode of the built in display(s).
+         *
+         * @return false when this ROM does not expose the required hidden APIs, the caller is
+         * then expected to fall back to a different way of switching the screen off.
+         */
+        fun setDisplayPowerMode(mode: Int): Boolean {
+            return try {
+                val method: Method = SurfaceControlClass.getMethod(
+                    "setDisplayPowerMode",
+                    IBinder::class.java,
+                    Int::class.javaPrimitiveType
                 )
+                val displayControl = resolveDisplayControl()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && displayControl != null) {
+                    val getPhysicalDisplayIdsMethod: Method =
+                        displayControl.getMethod("getPhysicalDisplayIds")
+                    val getPhysicalDisplayTokenMethod: Method = displayControl.getMethod(
+                        "getPhysicalDisplayToken",
+                        Long::class.javaPrimitiveType
+                    )
 
-                val displayIds = getPhysicalDisplayIdsMethod.invoke(null) as LongArray?
-                if (displayIds != null) {
+                    val displayIds = getPhysicalDisplayIdsMethod.invoke(null) as LongArray?
+                    if (displayIds == null || displayIds.isEmpty()) return false
                     for (displayId in displayIds) {
                         val token =
                             getPhysicalDisplayTokenMethod.invoke(null, displayId) as IBinder?
-                        method.invoke(null,token, mode)
+                        method.invoke(null, token, mode)
                     }
+                    true
+                } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    method.invoke(null, getBuiltInDisplay(), mode)
+                    true
+                } else {
+                    false
                 }
-            }else{
-                method.invoke(null, getBuiltInDisplay(), mode)
+            } catch (t: Throwable) {
+                Log.w(TAG, "setDisplayPowerMode($mode) failed: ${t.message}")
+                false
             }
         }
 
