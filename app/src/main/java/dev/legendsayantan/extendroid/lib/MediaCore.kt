@@ -81,30 +81,42 @@ open class MediaCore {
             updateSurface(packageName, surface)
             return
         }
-        try {
-            projection?.createVirtualDisplay(
-                packageName,
-                width,
-                height,
-                density.toInt(),
-                // No AUTO_MIRROR: the display must show the app launched on it, not a mirror
-                // of the phone screen (that made the popup look transparent).
-                DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC,
-                surface,
-                null,
-                null
-            )?.let {
-                virtualDisplays[packageName] = it
-                virtualDisplayReady(
-                    packageName, it.display.displayId
-                )
-            } ?: Logging(context).e(
-                "MediaProjection is not ready, cannot create a display for $packageName",
-                "MediaCore"
-            )
-        } catch (t: Throwable) {
-            Logging(context).e(t as? Exception ?: Exception(t), "MediaCore")
+
+        // A MediaProjection display is a capture of the default display, so whatever is
+        // launched on it never shows up and the window keeps mirroring the phone screen.
+        // A display created through DisplayManager composites its own windows instead.
+        val logger = Logging(context)
+        var created: VirtualDisplay? = null
+        val displayManager = context.getSystemService(DisplayManager::class.java)
+        if (displayManager != null) {
+            for (flags in intArrayOf(DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC, 0)) {
+                created = try {
+                    displayManager.createVirtualDisplay(
+                        packageName, width, height, density.toInt(), surface, flags
+                    )
+                } catch (t: Throwable) {
+                    logger.e("DisplayManager display (flags=$flags) failed: ${t.message}", "MediaCore"); null
+                }
+                if (created != null) {
+                    logger.i("Created display $packageName with flags=$flags", "MediaCore")
+                    break
+                }
+            }
         }
+        if (created == null) {
+            created = try {
+                projection?.createVirtualDisplay(packageName, width, height, density.toInt(),
+                    DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC, surface, null, null)
+            } catch (t: Throwable) {
+                logger.e(t as? Exception ?: Exception(t), "MediaCore"); null
+            }
+        }
+        if (created == null) {
+            logger.e("Cannot create a display for $packageName", "MediaCore")
+            return
+        }
+        virtualDisplays[packageName] = created
+        virtualDisplayReady(packageName, created.display.displayId)
     }
 
     fun fullScreen(packageName: String) {
