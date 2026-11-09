@@ -40,113 +40,39 @@ class ActivityHelper {
             return null
         }
 
-        @SuppressLint("PrivateApi")
+        /**
+         * Starts [component] on [displayId].
+         *
+         * `am start --display` is used because it builds the ActivityOptions exactly like the
+         * shell does; the old IActivityManager reflection silently dropped them on Android 14+
+         * and the activity ended up on display 0. When the app already has a task elsewhere the
+         * start is just ignored, so it is restarted with `-S` in that case.
+         */
         fun launchActivityOnDisplayID(component: ComponentName, displayId: Int): String {
-            // `am start --display` builds the ActivityOptions exactly like the shell does and is
-            // not affected by IActivityManager signature changes. The reflection path below
-            // silently dropped the options on Android 14+, launching the app on display 0.
-            try {
-                val process = Runtime.getRuntime().exec(
-                    arrayOf(
-                        "am", "start",
-                        "--display", displayId.toString(),
-                        "-n", component.flattenToString()
-                    )
-                )
+            var output = amStart(component, displayId, false)
+            if (!output.contains("Starting:") || output.contains("Activity not started")) {
+                output = amStart(component, displayId, true)
+            }
+            return if (output.contains("Starting:")) {
+                "Launched on display $displayId"
+            } else {
+                "Error: " + output.trim().take(300)
+            }
+        }
+
+        private fun amStart(component: ComponentName, displayId: Int, forceStop: Boolean): String {
+            return try {
+                val args = mutableListOf("am", "start", "--display", displayId.toString())
+                if (forceStop) args.add("-S")
+                args.add("-n")
+                args.add(component.flattenToString())
+                val process = Runtime.getRuntime().exec(args.toTypedArray())
                 val out = process.inputStream.bufferedReader().use { it.readText() }
                 val err = process.errorStream.bufferedReader().use { it.readText() }
-                val code = process.waitFor()
-                if (code == 0 && (out.contains("Starting:") || out.contains("Warning: Activity not started"))) {
-                    return "Launched on display $displayId"
-                }
-                return "Error: am start failed ($code) ${err.ifBlank { out }}"
+                process.waitFor()
+                out + err
             } catch (t: Throwable) {
-                // fall through to the reflection based implementation
-            }
-            try {
-                // 1) Build the Intent
-                val intent = Intent()
-                intent.setComponent(component)
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
-                // 2) Build ActivityOptions via reflection
-                val aoClass = Class.forName("android.app.ActivityOptions")
-                val makeBasic = aoClass.getMethod("makeBasic")
-                val options = makeBasic.invoke(null)
-
-                val setDisplay =
-                    aoClass.getMethod("setLaunchDisplayId", Int::class.javaPrimitiveType)
-                setDisplay.invoke(options, displayId)
-
-                val toBundle = aoClass.getMethod("toBundle")
-                val optsBundle = toBundle.invoke(options) as Bundle?
-
-                // 3) Get IActivityManager instance
-                val smClass = Class.forName("android.os.ServiceManager")
-                val getSvc = smClass.getMethod("getService", String::class.java)
-                val binder = getSvc.invoke(null, "activity")
-
-                val stubClass = Class.forName("android.app.IActivityManager\$Stub")
-                val asIface =
-                    stubClass.getMethod("asInterface", Class.forName("android.os.IBinder"))
-                val iam = asIface.invoke(null, binder)
-
-                // 4) Find the startActivityAsUser method dynamically to match current API
-                val iamClass = Class.forName("android.app.IActivityManager")
-                var targetMethod: Method? = null
-                for (m in iamClass.getMethods()) {
-                    if (m.name != "startActivityAsUser") continue
-                    val p = m.getParameterTypes().size
-                    // look for either 10- or 11-arg variant
-                    if (p == 10 || p == 11) {
-                        targetMethod = m
-                        break
-                    }
-                }
-                if (targetMethod == null) {
-                    throw NoSuchMethodException("startActivityAsUser with expected signature not found")
-                }
-
-                // Prepare common args
-                val invokeArgs: Array<Any?>?
-                if (targetMethod.getParameterTypes().size == 11) {
-                    // signature with userId at end
-                    val uhClass = Class.forName("android.os.UserHandle")
-                    val userCurrent = uhClass.getField("USER_CURRENT").getInt(null)
-                    invokeArgs = arrayOf<Any?>(
-                        null,  // caller token
-                        SHELL_PACKAGE,  // callingPackage
-                        intent,  // intent
-                        null,  // resolvedType
-                        null,  // resultTo
-                        null,  // resultWho
-                        0,  // requestCode
-                        Intent.FLAG_ACTIVITY_NEW_TASK,  // startFlags
-                        null,  // profilerInfo
-                        optsBundle,  // options
-                        userCurrent // userId
-                    )
-                } else {
-                    // 10-arg signature without userId
-                    invokeArgs = arrayOf<Any?>(
-                        null,
-                        SHELL_PACKAGE,
-                        intent,
-                        null,
-                        null,
-                        null,
-                        0,
-                        Intent.FLAG_ACTIVITY_NEW_TASK,
-                        null,
-                        optsBundle
-                    )
-                }
-
-                // 5) Invoke
-                targetMethod.invoke(iam, *invokeArgs)
-                return "Launched on display $displayId"
-            } catch (e: Exception) {
-                return e.stackTraceToString()
+                "Error: ${t.message}"
             }
         }
 
