@@ -24,8 +24,13 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Check Android SDK
+        run: |
+          # The ubuntu-latest image ships with a usable Android SDK; the legacy
+          # android-actions/setup-android action trips over cmdline-tools 16.
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls "$ANDROID_HOME/platforms" | tail -n 5
+          ls "$ANDROID_HOME/build-tools" | tail -n 5
 
       - name: Build debug APK
         run: |
