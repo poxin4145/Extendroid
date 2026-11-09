@@ -121,7 +121,9 @@ class OverlayMenu(val ctx: Context) : FrameLayout(ctx) {
     val gridColumnCount
         get() = if (ctx.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) 2 else 3
 
-    val activeWindowsData: ArrayList<WindowData> = arrayListOf()
+    /** Shared between menu instances: the panel is re-created on every open. */
+    val activeWindowsData: ArrayList<WindowData>
+        get() = sharedWindows
     val activePackages
         get() = activeWindowsData.map { it.packageName }
     var installedApps = listOf<AppItem>()
@@ -544,6 +546,9 @@ class OverlayMenu(val ctx: Context) : FrameLayout(ctx) {
 
     companion object {
         var isShowing: Boolean = false
+
+        /** Windows that are currently open or previewed, kept across panel re-creation. */
+        private val sharedWindows: ArrayList<WindowData> = arrayListOf()
     }
 
 
