@@ -34,8 +34,8 @@ android {
         applicationId = "dev.legendsayantan.extendroid"
         minSdk = 29
         targetSdk = 33
-        versionCode = 11
-        versionName = "1.1.4"
+        versionCode = 12
+        versionName = "1.1.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

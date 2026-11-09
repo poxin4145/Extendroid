@@ -184,8 +184,20 @@ class ExtendService : Service() {
     }
     private val menuOpenReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent?) {
-            menu.show()
+            showMenu()
         }
+    }
+
+    /**
+     * Shows the control panel with a freshly inflated instance. Re-showing the old view was
+     * unreliable on some ROMs: the window was added back with alpha 0 and nothing was visible.
+     */
+    fun showMenu() {
+        menuInstance?.destroy()
+        menuInstance = null
+        menuLanguage = null
+        if (svc != null) setupUI()
+        menu.show()
     }
 
     override fun onCreate() {

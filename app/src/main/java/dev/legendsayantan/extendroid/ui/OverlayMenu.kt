@@ -509,6 +509,14 @@ class OverlayMenu(val ctx: Context) : FrameLayout(ctx) {
         }
     }
 
+    /** Detaches the menu unconditionally, used before a fresh instance replaces it. */
+    fun destroy() {
+        removeAutoHide()
+        uiHandler.removeCallbacks(removeRunnable)
+        removeRunnable.run()
+        isShowing = false
+    }
+
     fun hide() {
         if (isRecording) {
             isRecording = false
@@ -519,11 +527,12 @@ class OverlayMenu(val ctx: Context) : FrameLayout(ctx) {
         }
         if (parent != null && isShowing) {
             isShowing = false
-            animate().scaleY(0f).setDuration(250).start()
             closeCallback.invoke()
             removeAutoHide()
             uiHandler.removeCallbacks(removeRunnable)
-            uiHandler.postDelayed(removeRunnable, 250)
+            // Remove immediately: reusing the detached view was unreliable on some ROMs
+            // (the window came back with alpha 0), so every open creates a fresh menu.
+            removeRunnable.run()
         }
     }
 
