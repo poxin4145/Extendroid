@@ -59,6 +59,9 @@ open class MediaCore {
 
     open fun mediaProjectionReady() {}
 
+    private var lastContext: Context? = null
+    private val displayParams = HashMap<String, IntArray>()
+
     fun setupVirtualDisplay(
         context: Context,
         packageName: String,
@@ -66,12 +69,15 @@ open class MediaCore {
         width: Int,
         height: Int
     ) {
+        lastContext = context
         val metrics = context.resources.displayMetrics
         val prefs = Prefs(context)
 
         val density = if (prefs.densityAuto) {
             (width * height * metrics.densityDpi * prefs.densityScale) / (metrics.heightPixels * metrics.widthPixels)
         } else (metrics.densityDpi * prefs.densityScale)
+
+        displayParams[packageName] = intArrayOf(width, height, density.toInt())
 
         if (virtualDisplays.contains(packageName)) {
             virtualDisplays[packageName]!!.resize(
@@ -83,17 +89,35 @@ open class MediaCore {
             return
         }
 
-        // A MediaProjection display is a capture of the default display, so whatever is
-        // launched on it never shows up and the window keeps mirroring the phone screen.
-        // A display created through DisplayManager composites its own windows instead.
+        val created = createDisplay(context, packageName, surface, width, height, density.toInt())
+        if (created == null) {
+            Logging(context).e(context.getString(R.string.log_display_unavailable, packageName), "MediaCore")
+            return
+        }
+        virtualDisplays[packageName] = created
+        virtualDisplayReady(packageName, created.display.displayId)
+    }
+
+    /**
+     * A MediaProjection display is a capture of the default display, so whatever is launched
+     * on it never shows up. A display created through DisplayManager composites its own
+     * windows instead.
+     */
+    private fun createDisplay(
+        context: Context,
+        packageName: String,
+        surface: Surface,
+        width: Int,
+        height: Int,
+        density: Int
+    ): VirtualDisplay? {
         val logger = Logging(context)
-        var created: VirtualDisplay? = null
         val displayManager = context.getSystemService(DisplayManager::class.java)
         if (displayManager != null) {
             for (flags in intArrayOf(DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC, 0)) {
-                created = try {
+                val created = try {
                     displayManager.createVirtualDisplay(
-                        packageName, width, height, density.toInt(), surface, flags
+                        packageName, width, height, density, surface, flags
                     )
                 } catch (t: Throwable) {
                     logger.e(
@@ -106,24 +130,43 @@ open class MediaCore {
                         context.getString(R.string.log_display_created, packageName, flags),
                         "MediaCore"
                     )
-                    break
+                    return created
                 }
             }
         }
-        if (created == null) {
-            created = try {
-                projection?.createVirtualDisplay(packageName, width, height, density.toInt(),
-                    DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC, surface, null, null)
-            } catch (t: Throwable) {
-                logger.e(t as? Exception ?: Exception(t), "MediaCore"); null
-            }
+        return try {
+            projection?.createVirtualDisplay(packageName, width, height, density,
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC, surface, null, null)
+        } catch (t: Throwable) {
+            logger.e(t as? Exception ?: Exception(t), "MediaCore")
+            null
         }
-        if (created == null) {
-            logger.e(context.getString(R.string.log_display_unavailable, packageName), "MediaCore")
-            return
+    }
+
+    fun updateSurface(packageName: String, surface: Surface) {
+        // The display may not exist yet when a popup surface arrives first; that is harmless.
+        val display = virtualDisplays[packageName] ?: return
+        try {
+            display.surface = surface
+        } catch (t: Throwable) {
+            android.util.Log.w("MediaCore", "updateSurface($packageName) failed: ${t.message}")
         }
-        virtualDisplays[packageName] = created
-        virtualDisplayReady(packageName, created.display.displayId)
+        if (display.surface === surface) return
+
+        // The previous surface was released (window closed or collapsed): the display cannot
+        // be re-attached, so build a new one on top of the fresh surface.
+        val context = lastContext ?: return
+        val params = displayParams[packageName] ?: return
+        virtualDisplays.remove(packageName)
+        try {
+            display.release()
+        } catch (_: Throwable) {
+        }
+        val recreated = createDisplay(context, packageName, surface, params[0], params[1], params[2])
+        if (recreated != null) {
+            virtualDisplays[packageName] = recreated
+            virtualDisplayReady(packageName, recreated.display.displayId)
+        }
     }
 
     fun fullScreen(packageName: String) {
@@ -138,15 +181,6 @@ open class MediaCore {
         scheduler.schedule({
             fullScreen(packageName)
         }, 250, TimeUnit.MILLISECONDS)
-    }
-
-    fun updateSurface(packageName: String, surface: Surface) {
-        // The display may not exist yet when a popup surface arrives first; that is harmless.
-        try {
-            virtualDisplays[packageName]?.surface = surface
-        } catch (t: Throwable) {
-            android.util.Log.w("MediaCore", "updateSurface($packageName) failed: ${t.message}")
-        }
     }
 
     fun newSessionRenderer(
