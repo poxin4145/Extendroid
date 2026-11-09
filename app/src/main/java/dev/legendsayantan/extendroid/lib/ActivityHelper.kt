@@ -42,6 +42,27 @@ class ActivityHelper {
 
         @SuppressLint("PrivateApi")
         fun launchActivityOnDisplayID(component: ComponentName, displayId: Int): String {
+            // `am start --display` builds the ActivityOptions exactly like the shell does and is
+            // not affected by IActivityManager signature changes. The reflection path below
+            // silently dropped the options on Android 14+, launching the app on display 0.
+            try {
+                val process = Runtime.getRuntime().exec(
+                    arrayOf(
+                        "am", "start",
+                        "--display", displayId.toString(),
+                        "-n", component.flattenToString()
+                    )
+                )
+                val out = process.inputStream.bufferedReader().use { it.readText() }
+                val err = process.errorStream.bufferedReader().use { it.readText() }
+                val code = process.waitFor()
+                if (code == 0 && (out.contains("Starting:") || out.contains("Warning: Activity not started"))) {
+                    return "Launched on display $displayId"
+                }
+                return "Error: am start failed ($code) ${err.ifBlank { out }}"
+            } catch (t: Throwable) {
+                // fall through to the reflection based implementation
+            }
             try {
                 // 1) Build the Intent
                 val intent = Intent()

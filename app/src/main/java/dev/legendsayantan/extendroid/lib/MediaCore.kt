@@ -87,7 +87,9 @@ open class MediaCore {
                 width,
                 height,
                 density.toInt(),
-                DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC + DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                // No AUTO_MIRROR: the display must show the app launched on it, not a mirror
+                // of the phone screen (that made the popup look transparent).
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC,
                 surface,
                 null,
                 null
