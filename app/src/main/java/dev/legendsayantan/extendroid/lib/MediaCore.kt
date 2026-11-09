@@ -135,7 +135,11 @@ open class MediaCore {
 
     fun updateSurface(packageName: String, surface: Surface) {
         // The display may not exist yet when a popup surface arrives first; that is harmless.
-        virtualDisplays[packageName]?.surface = surface
+        try {
+            virtualDisplays[packageName]?.surface = surface
+        } catch (t: Throwable) {
+            android.util.Log.w("MediaCore", "updateSurface($packageName) failed: ${t.message}")
+        }
     }
 
     fun newSessionRenderer(

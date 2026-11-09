@@ -42,6 +42,9 @@ class PopupManager(val context: Context) {
         newPopup.onSurfaceAvailable = { s ->
             MediaCore.mInstance?.updateSurface(packageName, s)
         }
+        newPopup.onSurfaceRefresh = { s ->
+            MediaCore.mInstance?.updateSurface(packageName, s)
+        }
         newPopup.onSurfaceChanged = { s, w, h ->
             MediaCore.mInstance?.setupVirtualDisplay(context, packageName, s, w, h)
         }

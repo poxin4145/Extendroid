@@ -43,6 +43,9 @@ class PopupWindow(
 ) : FrameLayout(ctx) {
 
     var onSurfaceAvailable: (Surface) -> Unit = {}
+
+    /** Called when the window is restored from the bubble, to re-attach the display surface. */
+    var onSurfaceRefresh: (Surface) -> Unit = {}
     var onSurfaceChanged: (Surface, Int, Int) -> Unit = { s, w, h -> }
 
     var onDeleteRequest: (PopupManager.PopupDeleteReason) -> Unit = {}
@@ -375,9 +378,8 @@ class PopupWindow(
     private fun collapseToBubble() {
         if (bubbleMode) return
         bubbleMode = true
-        // Hide the app content and the chrome; the window itself becomes tiny.
-        surfaceContainer.visibility = View.GONE
-        surfaceParent.visibility = View.GONE
+        // Keep the SurfaceView alive: destroying its surface detaches the virtual display and
+        // the app came back as a black window. It just becomes tiny underneath the bubble.
         dragHandle.visibility = View.GONE
         controls.visibility = View.GONE
         leftResizer.visibility = View.GONE
@@ -407,8 +409,6 @@ class PopupWindow(
         if (!bubbleMode) return
         bubbleMode = false
         bubbleView.visibility = View.GONE
-        surfaceContainer.visibility = View.VISIBLE
-        surfaceParent.visibility = View.VISIBLE
         dragHandle.visibility = View.VISIBLE
         leftResizer.visibility = View.VISIBLE
         rightResizer.visibility = View.VISIBLE
@@ -416,6 +416,14 @@ class PopupWindow(
         if (bounds != null) {
             applyBounds(bounds[0], bounds[1], bounds[2], bounds[3])
         }
+        // Re-attach the (still alive) surface to the virtual display after the resize.
+        bubbleView.postDelayed({
+            try {
+                onSurfaceRefresh(surfaceContainer.holder.surface)
+            } catch (t: Throwable) {
+                Logging(ctx).e(t as? Exception ?: Exception(t), "PopupWindow")
+            }
+        }, 60)
     }
 
     private fun applyBounds(x: Int, y: Int, width: Int, height: Int) {
