@@ -30,6 +30,7 @@ import dev.legendsayantan.extendroid.adapters.AppGridAdapter
 import dev.legendsayantan.extendroid.adapters.StaggeredGridAdapter
 import dev.legendsayantan.extendroid.model.AppItem
 import dev.legendsayantan.extendroid.model.WindowData
+import dev.legendsayantan.extendroid.lib.Logging
 import dev.legendsayantan.extendroid.lib.MediaCore
 import dev.legendsayantan.extendroid.lib.PackageManagerHelper
 import android.widget.Toast
@@ -454,21 +455,45 @@ class OverlayMenu(val ctx: Context) : FrameLayout(ctx) {
         }
     }
 
+    /** Removes the view from the window manager once the collapse animation finished. */
+    private val removeRunnable = Runnable {
+        if (parent != null) {
+            try {
+                wm.removeView(this)
+            } catch (t: Throwable) {
+                // already detached, nothing to do
+            }
+        }
+        scaleY = 1f
+        alpha = 1f
+    }
+
     fun show() {
         Utils.whenSafeForUI(ctx) {
+            // A pending hide would otherwise remove the view right after it was shown again.
+            handler.removeCallbacks(removeRunnable)
             if (parent == null) {
                 try {
                     scaleY = 0f
+                    alpha = 1f
                     wm.addView(this, layoutParams)
-                    isShowing = true
-                    animate().scaleY(1f).setDuration(250).start()
-                    setAutoHide()
-                    tabLayout.getTabAt(tabLayout.selectedTabPosition)?.let { reloadTabContents(it) }
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                } catch (t: Throwable) {
+                    Logging(ctx).e(t as? Exception ?: Exception(t), "OverlayMenu")
+                    return@whenSafeForUI
                 }
             } else {
-                setAutoHide()
+                // Still attached (or the previous removal failed): make it visible again.
+                scaleY = 1f
+                alpha = 1f
+                visibility = View.VISIBLE
+            }
+            isShowing = true
+            animate().scaleY(1f).setDuration(250).start()
+            setAutoHide()
+            try {
+                tabLayout.getTabAt(tabLayout.selectedTabPosition)?.let { reloadTabContents(it) }
+            } catch (t: Throwable) {
+                Logging(ctx).e(t as? Exception ?: Exception(t), "OverlayMenu")
             }
             setTouchListenerForAutoHide()
         }
@@ -487,12 +512,8 @@ class OverlayMenu(val ctx: Context) : FrameLayout(ctx) {
             animate().scaleY(0f).setDuration(250).start()
             closeCallback.invoke()
             removeAutoHide()
-            handler.postDelayed({
-                wm.removeView(this)
-                handler.postDelayed({
-                    scaleY = 1f
-                }, 250)
-            }, 250)
+            handler.removeCallbacks(removeRunnable)
+            handler.postDelayed(removeRunnable, 250)
         }
     }
 
