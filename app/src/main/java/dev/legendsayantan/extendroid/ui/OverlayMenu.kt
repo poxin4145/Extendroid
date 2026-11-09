@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.PixelFormat
+import android.os.Handler
+import android.os.Looper
 import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -91,6 +93,9 @@ class OverlayMenu(val ctx: Context) : FrameLayout(ctx) {
     val settingsScroll by lazy { root!!.findViewById<ScrollView>(R.id.settingsScroll) }
 
     private var closeCallback: () -> Unit = {}
+
+    /** A View's own handler is null while it is detached, so keep a dedicated one. */
+    private val uiHandler = Handler(Looper.getMainLooper())
     var collapseSeconds = 30L
     private var autoHideRunnable: Runnable? = null
 
@@ -381,7 +386,7 @@ class OverlayMenu(val ctx: Context) : FrameLayout(ctx) {
                     R.id.action_popup_all -> {
                         val w = staggeredGridAdapter.columnWidth;
                         activeWindowsData.forEachIndexed { index, data ->
-                            handler.postDelayed({
+                            uiHandler.postDelayed({
                                 openInPopup(
                                     data.packageName,
                                     w,
@@ -471,7 +476,7 @@ class OverlayMenu(val ctx: Context) : FrameLayout(ctx) {
     fun show() {
         Utils.whenSafeForUI(ctx) {
             // A pending hide would otherwise remove the view right after it was shown again.
-            handler.removeCallbacks(removeRunnable)
+            uiHandler.removeCallbacks(removeRunnable)
             if (parent == null) {
                 try {
                     scaleY = 0f
@@ -512,8 +517,8 @@ class OverlayMenu(val ctx: Context) : FrameLayout(ctx) {
             animate().scaleY(0f).setDuration(250).start()
             closeCallback.invoke()
             removeAutoHide()
-            handler.removeCallbacks(removeRunnable)
-            handler.postDelayed(removeRunnable, 250)
+            uiHandler.removeCallbacks(removeRunnable)
+            uiHandler.postDelayed(removeRunnable, 250)
         }
     }
 
