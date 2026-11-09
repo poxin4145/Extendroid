@@ -74,6 +74,13 @@ jobs:
           chmod +x gradlew
           ./gradlew :app:assembleRelease --no-daemon --stacktrace
 
+      - name: Verify APK signature
+        run: |
+          set -e
+          APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)
+          APK=$(find app/build/outputs/apk/release -name '*.apk' | head -n 1)
+          "$APKSIGNER" verify --print-certs "$APK"
+
       - name: Name the APK
         id: apk
         run: |
