@@ -12,6 +12,7 @@ import android.view.MotionEvent
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.widget.FrameLayout
@@ -95,6 +96,7 @@ class PopupWindow(
     val rightResizer by lazy { root.findViewById<LinearLayout>(R.id.rightResizer) }
 
     val controls by lazy { root.findViewById<LinearLayout>(R.id.controls) }
+    val bubbleView by lazy { root.findViewById<MaterialCardView>(R.id.bubbleView) }
     val hideBtn by lazy { root.findViewById<MaterialCardView>(R.id.hideBtn) }
     val fullBtn by lazy { root.findViewById<MaterialCardView>(R.id.fullBtn) }
     val backBtn by lazy { root.findViewById<MaterialCardView>(R.id.backBtn) }
@@ -322,6 +324,7 @@ class PopupWindow(
 
     /** Fills the screen with this window, or restores the previous bounds. */
     fun maximizeOrRestore() {
+        if (bubbleMode) return
         val metrics = resources.displayMetrics
         val saved = savedBounds
         if (saved == null) {
@@ -333,23 +336,85 @@ class PopupWindow(
         }
     }
 
-    /** Shrinks the window to a comfortable size, or restores the previous bounds. */
+    /** Bounds of the compact window, kept so the bubble can expand back into it. */
+    private var compactBounds: IntArray? = null
+    private var bubbleMode = false
+
+    private val bubbleSize: Int
+        get() = ctx.dpToPx(58f).toInt()
+
+    /**
+     * Cycles full window -> compact window -> round edge bubble -> compact window.
+     * The bubble shows no content, only the app icon, and expands when tapped.
+     */
     fun shrinkOrRestore() {
+        if (bubbleMode) {
+            expandFromBubble()
+            return
+        }
         val metrics = resources.displayMetrics
         val saved = savedBounds
         if (saved == null) {
             savedBounds = intArrayOf(positionParams.x, positionParams.y, positionParams.width, positionParams.height)
             val w = (metrics.widthPixels * 0.55f).toInt()
             val h = (metrics.heightPixels * 0.45f).toInt()
-            applyBounds(
+            compactBounds = intArrayOf(
                 ((metrics.widthPixels - w) / 2).coerceAtLeast(0),
                 ((metrics.heightPixels - h) / 3).coerceAtLeast(0),
                 w,
                 h
             )
+            applyBounds(compactBounds!![0], compactBounds!![1], w, h)
         } else {
-            applyBounds(saved[0], saved[1], saved[2], saved[3])
-            savedBounds = null
+            // Second press: collapse to a bubble hugging the screen edge.
+            compactBounds = intArrayOf(positionParams.x, positionParams.y, positionParams.width, positionParams.height)
+            collapseToBubble()
+        }
+    }
+
+    private fun collapseToBubble() {
+        if (bubbleMode) return
+        bubbleMode = true
+        // Hide the app content and the chrome; the window itself becomes tiny.
+        surfaceContainer.visibility = View.GONE
+        surfaceParent.visibility = View.GONE
+        dragHandle.visibility = View.GONE
+        controls.visibility = View.GONE
+        leftResizer.visibility = View.GONE
+        rightResizer.visibility = View.GONE
+        bubbleView.visibility = View.VISIBLE
+        bubbleView.setOnClickListener { expandFromBubble() }
+
+        val metrics = resources.displayMetrics
+        val size = bubbleSize
+        val saved = compactBounds ?: intArrayOf(positionParams.x, positionParams.y, 0, 0)
+        positionParams.width = size
+        positionParams.height = size
+        positionParams.x = if (saved[0] + saved[2] / 2 > metrics.widthPixels / 2) {
+            (metrics.widthPixels - size).coerceAtLeast(0)
+        } else {
+            0
+        }
+        positionParams.y = saved[1].coerceIn(0, (metrics.heightPixels - size).coerceAtLeast(0))
+        try {
+            wm.updateViewLayout(this, positionParams)
+        } catch (t: Throwable) {
+            Logging(ctx).e(t as? Exception ?: Exception(t), "PopupWindow")
+        }
+    }
+
+    private fun expandFromBubble() {
+        if (!bubbleMode) return
+        bubbleMode = false
+        bubbleView.visibility = View.GONE
+        surfaceContainer.visibility = View.VISIBLE
+        surfaceParent.visibility = View.VISIBLE
+        dragHandle.visibility = View.VISIBLE
+        leftResizer.visibility = View.VISIBLE
+        rightResizer.visibility = View.VISIBLE
+        val bounds = compactBounds ?: savedBounds
+        if (bounds != null) {
+            applyBounds(bounds[0], bounds[1], bounds[2], bounds[3])
         }
     }
 

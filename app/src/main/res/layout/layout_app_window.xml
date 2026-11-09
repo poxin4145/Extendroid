@@ -45,6 +45,26 @@
         android:layout_margin="7dp"
         app:layout_constraintBottom_toBottomOf="parent" />
 
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/bubbleView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        app:cardCornerRadius="200dp"
+        app:strokeWidth="3dp"
+        app:strokeColor="?attr/colorOnSecondary"
+        app:cardBackgroundColor="?attr/colorOnBackground">
+
+        <ImageView
+            android:id="@+id/bubbleIcon"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="6dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/logo"
+            android:contentDescription="@string/app_logo" />
+    </com.google.android.material.card.MaterialCardView>
+
     <LinearLayout
         android:id="@+id/handle"
         android:focusable="true"
